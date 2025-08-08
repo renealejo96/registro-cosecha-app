@@ -27,35 +27,32 @@
    - **Connect repository:** `renealejo96/registro-cosecha-app`
    - Click **"Connect"**
 
-### ⚙️ PASO 4: Configurar el servicio
+### ⚙️ PASO 4: Configurar el servicio (VERSIÓN SIMPLIFICADA)
 ```
 Name: registro-cosecha-app
 Region: Oregon (US West)
 Branch: main
 Runtime: Python 3
-Root Directory: . (punto, no 'main')
-Build Command: python -m pip install --upgrade pip>=22.0.0 && python -m pip install --upgrade setuptools>=65.0.0 wheel>=0.38.0 && python -m pip install --no-cache-dir --prefer-binary --timeout 1000 -r requirements.txt
-Start Command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --server.fileWatcherType none --server.enableCORS false
+Root Directory: .
+Build Command: pip install -r requirements.txt
+Start Command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --server.enableCORS false
 ```
 
 ### 🚨 IMPORTANTE - Soluciones para errores comunes:
 
+#### Si aparece "pkgutil ImpImporter error":
+1. **USAR PYTHON 3.10** en lugar de 3.11 o 3.12
+2. **Build Command simplificado:** `pip install -r requirements.txt`
+3. **Sin variables de entorno adicionales**
+
 #### Si aparece "directorio raíz 'main' no existe":
-1. En **Root Directory** asegúrate de poner solo un **punto** (.)
+1. En **Root Directory** pon solo un **punto** (.)
 2. NO pongas "main" en Root Directory
 
-#### Si aparece "Cannot import 'setuptools.build_meta'":
-1. Usa el **Build Command** completo de arriba
-2. Agrega estas variables de entorno en "Advanced":
-   ```
-   PIP_NO_CACHE_DIR = 1
-   PIP_PREFER_BINARY = 1
-   SETUPTOOLS_USE_DISTUTILS = stdlib
-   ```
-
-#### Si aparece "Failed building wheel for pandas":
-1. El comando de build ya incluye --prefer-binary
-2. Aumenta timeout con --timeout 1000
+#### Para máxima compatibilidad:
+- Runtime: **Python 3.10** (más estable que 3.11/3.12)
+- Build Command: **Simple** (sin complicaciones)
+- Start Command: **Sin fileWatcherType**
 
 ### 🔧 PASO 5: Configuraciones avanzadas
 En **"Advanced"**:
