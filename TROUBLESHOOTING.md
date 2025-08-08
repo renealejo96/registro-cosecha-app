@@ -56,33 +56,72 @@ Render puede usar el archivo `render.yaml` automáticamente si está en la raíz
 Start Command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
 ```
 
-## ❌ ERROR: "Cannot import 'setuptools.build_meta'"
+# 🛠️ SOLUCIÓN DE PROBLEMAS - TODAS LAS OPCIONES
 
-### 🔍 **CAUSA DEL PROBLEMA:**
-Versión incompatible o corrupta de setuptools durante el build.
+## ❌ ERROR PERSISTENTE: "pkgutil.ImpImporter"
 
-### ✅ **SOLUCIÓN PASO A PASO:**
+### 🔍 **CAUSA:**
+Este error indica incompatibilidades fundamentales entre versiones de Python y herramientas de packaging en Render.
 
-#### 1. **Build Command robusto:**
+### ✅ **SOLUCIÓN DEFINITIVA: CAMBIAR A STREAMLIT CLOUD**
+
+#### 🏆 **OPCIÓN 1: STREAMLIT COMMUNITY CLOUD (RECOMENDADA)**
 ```
-python -m pip install --upgrade pip>=22.0.0 && python -m pip install --upgrade setuptools>=65.0.0 wheel>=0.38.0 && python -m pip install --no-cache-dir --prefer-binary --timeout 1000 -r requirements.txt
-```
-
-#### 2. **Variables de entorno necesarias:**
-```
-PIP_NO_CACHE_DIR = 1
-PIP_PREFER_BINARY = 1
-SETUPTOOLS_USE_DISTUTILS = stdlib
+👉 https://share.streamlit.io
+👉 Conectar GitHub
+👉 Seleccionar repositorio
+👉 Deploy automático
 ```
 
-#### 3. **Si el error persiste:**
-- Borra el servicio en Render completamente
-- Crea uno nuevo con la configuración actualizada
-- Usa Python 3.11 (no 3.12 que puede tener problemas)
+**Ventajas:**
+- ✅ **Especializado en Streamlit**
+- ✅ **Sin errores de compatibilidad**  
+- ✅ **Gratis permanente**
+- ✅ **Deploy en 2 minutos**
 
 ---
 
-### **ERROR: "Failed building wheel for pandas"**
+### 🔧 **OPCIÓN 2: RENDER (ÚLTIMA TENTATIVA)**
+
+#### Configuración ultra-simple:
+```
+Runtime: Python 3.9
+Build Command: pip install streamlit==1.25.0 pandas==1.5.2 altair==4.2.0
+Start Command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+```
+
+#### Si falla, usar requirements-minimal.txt:
+```
+Build Command: pip install -r requirements-minimal.txt
+```
+
+---
+
+### 🌐 **OPCIÓN 3: OTRAS ALTERNATIVAS**
+
+#### **Heroku (con Procfile)**
+- Usar el `Procfile` existente
+- Subir repositorio a Heroku
+
+#### **Railway**
+- Conectar GitHub
+- Deploy automático
+
+#### **Vercel**
+- Para apps más simples
+
+---
+
+## 🎯 **RECOMENDACIÓN FINAL:**
+
+**Cambia a Streamlit Community Cloud** - Es la plataforma oficial y no tendrás estos problemas de compatibilidad.
+
+### **Para cambiar:**
+1. Ve a `https://share.streamlit.io`
+2. Conecta tu repositorio GitHub
+3. ¡Listo en 2 minutos!
+
+El error de pkgutil es específico de algunos servidores y se evita usando la plataforma oficial de Streamlit.
 **Causa:** Problemas de compilación de pandas en el servidor de Render
 **Solución:** 
 1. Usar Build Command optimizado:

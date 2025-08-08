@@ -1,4 +1,4 @@
-# Configuración minimalista para Render - solo lo esencial
-streamlit==1.26.0
-pandas==1.5.3
-altair==4.2.2
+# Ultra minimalista - solo lo absolutamente necesario
+streamlit
+pandas
+altair

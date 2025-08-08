@@ -1,6 +1,5 @@
-# Versiones exactas para evitar conflictos de compatibilidad
-streamlit==1.26.0
-pandas==1.5.3
-altair==4.2.2
-numpy==1.24.3
-pytz==2023.3
+# Versiones ultra-estables que funcionan en Render
+streamlit==1.25.0
+pandas==1.5.2
+altair==4.2.0
+numpy==1.23.5
