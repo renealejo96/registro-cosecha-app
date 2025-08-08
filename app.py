@@ -148,7 +148,8 @@ with st.form("formulario_cosecha"):
             save_data(registro)
             st.success("Registro guardado exitosamente.")
 
-# --- MOSTRAR DATOS ---
+
+# --- MOSTRAR DATOS Y GESTIÓN DE REGISTROS ---
 st.subheader("Registros guardados")
 data = load_data()
 
@@ -162,19 +163,123 @@ else:
         cols.insert(0, "Modulo")
         data = data[cols]
 
+    # Filtro por módulo
+    modulos_unicos = data["Modulo"].dropna().unique().tolist()
+    modulo_filtro = st.selectbox("Filtrar por módulo", ["Todos"] + modulos_unicos)
+    if modulo_filtro != "Todos":
+        data_filtrada = data[data["Modulo"] == modulo_filtro].reset_index(drop=True)
+    else:
+        data_filtrada = data.reset_index(drop=True)
+
     # Mostrar resumen para móviles
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Total Registros", len(data))
+        st.metric("Total Registros", len(data_filtrada))
     with col2:
-        if "Total cosecha" in data.columns:
-            st.metric("Total Tallos", f"{data['Total cosecha'].sum():,.0f}")
+        if "Total cosecha" in data_filtrada.columns:
+            st.metric("Total Tallos", f"{data_filtrada['Total cosecha'].sum():,.0f}")
     with col3:
-        if "Variedad" in data.columns:
-            st.metric("Variedades", data['Variedad'].nunique())
-    
-    # Tabla responsiva
-    st.dataframe(data, use_container_width=True, height=400)
+        if "Variedad" in data_filtrada.columns:
+            st.metric("Variedades", data_filtrada['Variedad'].nunique())
+
+    # Tabla interactiva con selección y edición
+    st.markdown("#### Seleccionar registro para editar o eliminar")
+    if not data_filtrada.empty:
+        
+        # Mostrar tabla de solo lectura primero
+        st.dataframe(data_filtrada, use_container_width=True, height=300)
+        
+        # Selección de registros para eliminar
+        st.markdown("##### Seleccionar registros para eliminar:")
+        filas_a_eliminar = []
+        
+        # Crear checkboxes para cada fila
+        for idx, row in data_filtrada.iterrows():
+            col_check, col_info = st.columns([1, 10])
+            with col_check:
+                selected = st.checkbox("", key=f"select_{idx}_{modulo_filtro}")
+            with col_info:
+                st.text(f"Fila {idx}: {row['Variedad']} - {row['Modulo']} - {row['Total cosecha']} tallos")
+            
+            if selected:
+                filas_a_eliminar.append(idx)
+        
+        # Botones de acción
+        col_btn1, col_btn2 = st.columns(2)
+        
+        with col_btn1:
+            if st.button("�️ Eliminar seleccionados", use_container_width=True, key="delete_selected"):
+                if len(filas_a_eliminar) > 0:
+                    data_actualizada = data.copy()
+                    
+                    if modulo_filtro != "Todos":
+                        # Obtener índices reales en el dataframe original
+                        idxs_originales = data[data["Modulo"] == modulo_filtro].index.tolist()
+                        idxs_a_eliminar = [idxs_originales[i] for i in filas_a_eliminar]
+                    else:
+                        idxs_a_eliminar = filas_a_eliminar
+                    
+                    # Eliminar filas seleccionadas
+                    data_actualizada = data_actualizada.drop(idxs_a_eliminar).reset_index(drop=True)
+                    data_actualizada.to_csv(DATA_FILE, index=False)
+                    
+                    st.success(f"✅ {len(filas_a_eliminar)} registro(s) eliminado(s)")
+                    st.rerun()
+                else:
+                    st.warning("⚠️ Seleccione al menos un registro para eliminar")
+        
+        with col_btn2:
+            # Editor manual para una fila específica
+            st.markdown("##### Editar registro específico:")
+            fila_a_editar = st.selectbox("Seleccione la fila a editar:", range(len(data_filtrada)), format_func=lambda x: f"Fila {x}: {data_filtrada.iloc[x]['Variedad']}")
+            
+            if st.button("✏️ Editar fila seleccionada", use_container_width=True):
+                st.session_state.editing_row = fila_a_editar
+                st.rerun()
+        
+        # Formulario de edición si hay una fila seleccionada
+        if hasattr(st.session_state, 'editing_row') and st.session_state.editing_row is not None:
+            st.markdown("##### Editando registro:")
+            row_to_edit = data_filtrada.iloc[st.session_state.editing_row]
+            
+            with st.form("edit_form"):
+                new_fecha = st.date_input("Fecha:", value=pd.to_datetime(row_to_edit['Fecha']).date())
+                new_variedad = st.selectbox("Variedad:", load_variedades(), index=load_variedades().index(row_to_edit['Variedad']) if row_to_edit['Variedad'] in load_variedades() else 0)
+                new_modulo = st.selectbox("Módulo:", load_modulos(), index=load_modulos().index(row_to_edit['Modulo']) if row_to_edit['Modulo'] in load_modulos() else 0)
+                new_mallas = st.number_input("Mallas:", value=int(row_to_edit['Mallas']), min_value=1)
+                new_num_tallos = st.selectbox("Tallos por malla:", [10, 15, 20, 25, 30], index=[10, 15, 20, 25, 30].index(row_to_edit['Número de tallos']))
+                
+                col_save, col_cancel = st.columns(2)
+                with col_save:
+                    if st.form_submit_button("💾 Guardar cambios"):
+                        # Calcular nuevo total
+                        new_total = new_mallas * new_num_tallos
+                        
+                        # Actualizar datos
+                        data_actualizada = data.copy()
+                        if modulo_filtro != "Todos":
+                            idx_original = data[data["Modulo"] == modulo_filtro].index[st.session_state.editing_row]
+                        else:
+                            idx_original = st.session_state.editing_row
+                        
+                        data_actualizada.at[idx_original, 'Fecha'] = new_fecha.strftime("%Y-%m-%d")
+                        data_actualizada.at[idx_original, 'Variedad'] = new_variedad
+                        data_actualizada.at[idx_original, 'Modulo'] = new_modulo
+                        data_actualizada.at[idx_original, 'Mallas'] = new_mallas
+                        data_actualizada.at[idx_original, 'Número de tallos'] = new_num_tallos
+                        data_actualizada.at[idx_original, 'Total cosecha'] = new_total
+                        
+                        data_actualizada.to_csv(DATA_FILE, index=False)
+                        st.session_state.editing_row = None
+                        st.success("✅ Registro actualizado correctamente")
+                        st.rerun()
+                
+                with col_cancel:
+                    if st.form_submit_button("❌ Cancelar"):
+                        st.session_state.editing_row = None
+                        st.rerun()
+    else:
+        st.info("No hay registros para este módulo.")
 
 # --- GRÁFICO TOTAL TALLOS POR VARIEDAD CON ETIQUETAS ---
 st.subheader("Total de tallos por variedad")
