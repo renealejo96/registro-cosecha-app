@@ -34,23 +34,28 @@ Region: Oregon (US West)
 Branch: main
 Runtime: Python 3
 Root Directory: . (punto, no 'main')
-Build Command: python -m pip install --upgrade pip setuptools wheel && pip install --no-cache-dir --prefer-binary -r requirements.txt
-Start Command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --server.fileWatcherType none
+Build Command: python -m pip install --upgrade pip>=22.0.0 && python -m pip install --upgrade setuptools>=65.0.0 wheel>=0.38.0 && python -m pip install --no-cache-dir --prefer-binary --timeout 1000 -r requirements.txt
+Start Command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --server.fileWatcherType none --server.enableCORS false
 ```
 
-### 🚨 IMPORTANTE - Si aparece error "directorio raíz 'main' no existe":
+### 🚨 IMPORTANTE - Soluciones para errores comunes:
+
+#### Si aparece "directorio raíz 'main' no existe":
 1. En **Root Directory** asegúrate de poner solo un **punto** (.)
 2. NO pongas "main" en Root Directory
-3. La rama debe ser "main" pero el directorio raíz es "."
 
-### 🔧 SOLUCIÓN PARA ERRORES DE PANDAS:
-Si aparece "Failed building wheel for pandas":
+#### Si aparece "Cannot import 'setuptools.build_meta'":
 1. Usa el **Build Command** completo de arriba
-2. Agrega variables de entorno en "Advanced":
+2. Agrega estas variables de entorno en "Advanced":
    ```
    PIP_NO_CACHE_DIR = 1
    PIP_PREFER_BINARY = 1
+   SETUPTOOLS_USE_DISTUTILS = stdlib
    ```
+
+#### Si aparece "Failed building wheel for pandas":
+1. El comando de build ya incluye --prefer-binary
+2. Aumenta timeout con --timeout 1000
 
 ### 🔧 PASO 5: Configuraciones avanzadas
 En **"Advanced"**:

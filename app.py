@@ -43,16 +43,16 @@ os.makedirs(DATA_FOLDER, exist_ok=True)
 
 # Configuración de página para móviles
 st.set_page_config(
-    page_title="🌸 Registro de Cosecha",
+    page_title="Registro de Cosecha",
     page_icon="🌸",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # Información del sistema
-st.sidebar.markdown("### 📱 Sistema de Cosecha")
+st.sidebar.markdown("### Sistema de Cosecha")
 st.sidebar.markdown("**Versión:** 1.0")
-st.sidebar.markdown("**Optimizado para móviles** ✅")
+st.sidebar.markdown("**Optimizado para móviles**")
 
 # CSS personalizado para móviles
 st.markdown("""
@@ -94,29 +94,28 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Título de la app
-st.title("🌸 REGISTRO DE COSECHA")
+st.title("REGISTRO DE COSECHA")
 
 # --- FORMULARIO ---
-st.subheader("📝 Nuevo Registro")
+st.subheader("Nuevo Registro")
 with st.form("formulario_cosecha"):
     # Primera fila
     col1, col2 = st.columns(2)
     with col1:
-        fecha = st.date_input("📅 Fecha de cosecha")
+        fecha = st.date_input("Fecha de cosecha")
     with col2:
         # Módulo
         modulos = load_modulos()
         if modulos:
-            modulo = st.selectbox("🏢 Módulo", modulos)
+            modulo = st.selectbox("Módulo", modulos)
         else:
             st.warning("No hay módulos disponibles en data/modulos.csv")
             modulo = ""
 
-    # Segunda fila
     # Variedad (ancho completo para mejor legibilidad en móvil)
     variedades = load_variedades()
     if variedades:
-        variedad = st.selectbox("🌻 Variedad", variedades)
+        variedad = st.selectbox("Variedad", variedades)
     else:
         st.warning("No hay variedades disponibles en data/variedades.csv")
         variedad = ""
@@ -124,15 +123,15 @@ with st.form("formulario_cosecha"):
     # Tercera fila
     col3, col4 = st.columns(2)
     with col3:
-        mallas = st.number_input("📦 Número de mallas", min_value=1, step=1)
+        mallas = st.number_input("Número de mallas", min_value=1, step=1)
     with col4:
-        num_tallos = st.selectbox("🌾 Tallos por malla", [10, 15, 20, 25, 30])
+        num_tallos = st.selectbox("Tallos por malla", [10, 15, 20, 25, 30])
     
     # Cálculo automático
     total_cosecha = mallas * num_tallos
-    st.info(f"📊 **Total cosecha calculada: {total_cosecha:,} tallos**")
+    st.info(f"**Total cosecha calculada: {total_cosecha:,} tallos**")
 
-    enviado = st.form_submit_button("✅ Registrar Cosecha", use_container_width=True)
+    enviado = st.form_submit_button("Registrar Cosecha", use_container_width=True)
 
     if enviado:
         if not variedad or not modulo:
@@ -147,10 +146,10 @@ with st.form("formulario_cosecha"):
                 "Modulo": modulo
             }
             save_data(registro)
-            st.success("✅ Registro guardado exitosamente.")
+            st.success("Registro guardado exitosamente.")
 
 # --- MOSTRAR DATOS ---
-st.subheader("📋 Registros guardados")
+st.subheader("Registros guardados")
 data = load_data()
 
 if data.empty:
@@ -178,7 +177,7 @@ else:
     st.dataframe(data, use_container_width=True, height=400)
 
 # --- GRÁFICO TOTAL TALLOS POR VARIEDAD CON ETIQUETAS ---
-st.subheader("📊 Total de tallos por variedad")
+st.subheader("Total de tallos por variedad")
 
 if not data.empty:
     tallos_por_variedad = data.groupby("Variedad")["Total cosecha"].sum().reset_index()

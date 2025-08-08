@@ -56,6 +56,32 @@ Render puede usar el archivo `render.yaml` automáticamente si está en la raíz
 Start Command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
 ```
 
+## ❌ ERROR: "Cannot import 'setuptools.build_meta'"
+
+### 🔍 **CAUSA DEL PROBLEMA:**
+Versión incompatible o corrupta de setuptools durante el build.
+
+### ✅ **SOLUCIÓN PASO A PASO:**
+
+#### 1. **Build Command robusto:**
+```
+python -m pip install --upgrade pip>=22.0.0 && python -m pip install --upgrade setuptools>=65.0.0 wheel>=0.38.0 && python -m pip install --no-cache-dir --prefer-binary --timeout 1000 -r requirements.txt
+```
+
+#### 2. **Variables de entorno necesarias:**
+```
+PIP_NO_CACHE_DIR = 1
+PIP_PREFER_BINARY = 1
+SETUPTOOLS_USE_DISTUTILS = stdlib
+```
+
+#### 3. **Si el error persiste:**
+- Borra el servicio en Render completamente
+- Crea uno nuevo con la configuración actualizada
+- Usa Python 3.11 (no 3.12 que puede tener problemas)
+
+---
+
 ### **ERROR: "Failed building wheel for pandas"**
 **Causa:** Problemas de compilación de pandas en el servidor de Render
 **Solución:** 
