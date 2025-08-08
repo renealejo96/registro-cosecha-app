@@ -182,102 +182,57 @@ else:
         if "Variedad" in data_filtrada.columns:
             st.metric("Variedades", data_filtrada['Variedad'].nunique())
 
-    # Tabla interactiva con selección y edición
-    st.markdown("#### Seleccionar registro para editar o eliminar")
+    # Tabla de registros y eliminación
+    st.markdown("#### Eliminar registro")
     if not data_filtrada.empty:
         
-        # Mostrar tabla de solo lectura primero
+        # Mostrar tabla de solo lectura
         st.dataframe(data_filtrada, use_container_width=True, height=300)
         
-        # Selección de registros para eliminar
-        st.markdown("##### Seleccionar registros para eliminar:")
-        filas_a_eliminar = []
+        # Barra de búsqueda para seleccionar registro a eliminar
+        st.markdown("##### Buscar y eliminar registro:")
         
-        # Crear checkboxes para cada fila
+        # Crear opciones de búsqueda con información detallada
+        opciones_busqueda = []
         for idx, row in data_filtrada.iterrows():
-            col_check, col_info = st.columns([1, 10])
-            with col_check:
-                selected = st.checkbox("", key=f"select_{idx}_{modulo_filtro}")
-            with col_info:
-                st.text(f"Fila {idx}: {row['Variedad']} - {row['Modulo']} - {row['Total cosecha']} tallos")
+            opcion = f"Fila {idx}: {row['Fecha']} | {row['Variedad']} | {row['Modulo']} | {row['Total cosecha']} tallos"
+            opciones_busqueda.append(opcion)
+        
+        # Selectbox con búsqueda
+        registro_seleccionado = st.selectbox(
+            "Busque el registro que desea eliminar:",
+            options=range(len(data_filtrada)),
+            format_func=lambda x: opciones_busqueda[x],
+            help="Use este campo para buscar y seleccionar el registro a eliminar"
+        )
+        
+        # Mostrar detalles del registro seleccionado
+        if registro_seleccionado is not None:
+            row_seleccionada = data_filtrada.iloc[registro_seleccionado]
+            st.info(f"**Registro seleccionado:**\n"
+                   f"📅 Fecha: {row_seleccionada['Fecha']}\n"
+                   f"🌸 Variedad: {row_seleccionada['Variedad']}\n"
+                   f"🏠 Módulo: {row_seleccionada['Modulo']}\n"
+                   f"📦 Mallas: {row_seleccionada['Mallas']}\n"
+                   f"🌾 Tallos por malla: {row_seleccionada['Número de tallos']}\n"
+                   f"🎯 Total cosecha: {row_seleccionada['Total cosecha']} tallos")
+        
+        # Botón de eliminación
+        if st.button("🗑️ Eliminar registro seleccionado", use_container_width=True, type="primary"):
+            data_actualizada = data.copy()
             
-            if selected:
-                filas_a_eliminar.append(idx)
-        
-        # Botones de acción
-        col_btn1, col_btn2 = st.columns(2)
-        
-        with col_btn1:
-            if st.button("�️ Eliminar seleccionados", use_container_width=True, key="delete_selected"):
-                if len(filas_a_eliminar) > 0:
-                    data_actualizada = data.copy()
-                    
-                    if modulo_filtro != "Todos":
-                        # Obtener índices reales en el dataframe original
-                        idxs_originales = data[data["Modulo"] == modulo_filtro].index.tolist()
-                        idxs_a_eliminar = [idxs_originales[i] for i in filas_a_eliminar]
-                    else:
-                        idxs_a_eliminar = filas_a_eliminar
-                    
-                    # Eliminar filas seleccionadas
-                    data_actualizada = data_actualizada.drop(idxs_a_eliminar).reset_index(drop=True)
-                    data_actualizada.to_csv(DATA_FILE, index=False)
-                    
-                    st.success(f"✅ {len(filas_a_eliminar)} registro(s) eliminado(s)")
-                    st.rerun()
-                else:
-                    st.warning("⚠️ Seleccione al menos un registro para eliminar")
-        
-        with col_btn2:
-            # Editor manual para una fila específica
-            st.markdown("##### Editar registro específico:")
-            fila_a_editar = st.selectbox("Seleccione la fila a editar:", range(len(data_filtrada)), format_func=lambda x: f"Fila {x}: {data_filtrada.iloc[x]['Variedad']}")
+            if modulo_filtro != "Todos":
+                # Obtener índice real en el dataframe original
+                idx_original = data[data["Modulo"] == modulo_filtro].index[registro_seleccionado]
+            else:
+                idx_original = registro_seleccionado
             
-            if st.button("✏️ Editar fila seleccionada", use_container_width=True):
-                st.session_state.editing_row = fila_a_editar
-                st.rerun()
-        
-        # Formulario de edición si hay una fila seleccionada
-        if hasattr(st.session_state, 'editing_row') and st.session_state.editing_row is not None:
-            st.markdown("##### Editando registro:")
-            row_to_edit = data_filtrada.iloc[st.session_state.editing_row]
+            # Eliminar registro
+            data_actualizada = data_actualizada.drop(idx_original).reset_index(drop=True)
+            data_actualizada.to_csv(DATA_FILE, index=False)
             
-            with st.form("edit_form"):
-                new_fecha = st.date_input("Fecha:", value=pd.to_datetime(row_to_edit['Fecha']).date())
-                new_variedad = st.selectbox("Variedad:", load_variedades(), index=load_variedades().index(row_to_edit['Variedad']) if row_to_edit['Variedad'] in load_variedades() else 0)
-                new_modulo = st.selectbox("Módulo:", load_modulos(), index=load_modulos().index(row_to_edit['Modulo']) if row_to_edit['Modulo'] in load_modulos() else 0)
-                new_mallas = st.number_input("Mallas:", value=int(row_to_edit['Mallas']), min_value=1)
-                new_num_tallos = st.selectbox("Tallos por malla:", [10, 15, 20, 25, 30], index=[10, 15, 20, 25, 30].index(row_to_edit['Número de tallos']))
-                
-                col_save, col_cancel = st.columns(2)
-                with col_save:
-                    if st.form_submit_button("💾 Guardar cambios"):
-                        # Calcular nuevo total
-                        new_total = new_mallas * new_num_tallos
-                        
-                        # Actualizar datos
-                        data_actualizada = data.copy()
-                        if modulo_filtro != "Todos":
-                            idx_original = data[data["Modulo"] == modulo_filtro].index[st.session_state.editing_row]
-                        else:
-                            idx_original = st.session_state.editing_row
-                        
-                        data_actualizada.at[idx_original, 'Fecha'] = new_fecha.strftime("%Y-%m-%d")
-                        data_actualizada.at[idx_original, 'Variedad'] = new_variedad
-                        data_actualizada.at[idx_original, 'Modulo'] = new_modulo
-                        data_actualizada.at[idx_original, 'Mallas'] = new_mallas
-                        data_actualizada.at[idx_original, 'Número de tallos'] = new_num_tallos
-                        data_actualizada.at[idx_original, 'Total cosecha'] = new_total
-                        
-                        data_actualizada.to_csv(DATA_FILE, index=False)
-                        st.session_state.editing_row = None
-                        st.success("✅ Registro actualizado correctamente")
-                        st.rerun()
-                
-                with col_cancel:
-                    if st.form_submit_button("❌ Cancelar"):
-                        st.session_state.editing_row = None
-                        st.rerun()
+            st.success("✅ Registro eliminado correctamente")
+            st.rerun()
     else:
         st.info("No hay registros para este módulo.")
 
