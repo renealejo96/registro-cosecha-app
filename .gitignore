@@ -25,5 +25,12 @@ Desktop.ini
 # Render
 .render/
 
+# Ignorar archivos no relacionados con la app de cosecha
+CONSOLIDADO_DIAS.ipynb
+contenedor.py
+lluvia.py
+MONITOREOS_BLOQUES.py
+pruweba.py
+
 # Mantener la estructura de data pero ignorar datos sensibles
 # data/registros.csv
