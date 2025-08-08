@@ -1,0 +1,29 @@
+# Ignorar archivos del sistema
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.venv/
+venv/
+.env
+
+# Ignorar archivos de Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Ignorar archivos de VS Code
+.vscode/
+
+# Ignorar archivos temporales
+*.tmp
+*.log
+.DS_Store
+
+# Render
+.render/
+
+# Mantener la estructura de data pero ignorar datos sensibles
+# data/registros.csv
