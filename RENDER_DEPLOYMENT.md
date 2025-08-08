@@ -33,9 +33,15 @@ Name: registro-cosecha-app
 Region: Oregon (US West)
 Branch: main
 Runtime: Python 3
+Root Directory: . (punto, no 'main')
 Build Command: pip install -r requirements.txt
-Start Command: ./start.sh
+Start Command: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true --server.fileWatcherType none
 ```
+
+### 🚨 IMPORTANTE - Si aparece error "directorio raíz 'main' no existe":
+1. En **Root Directory** asegúrate de poner solo un **punto** (.)
+2. NO pongas "main" en Root Directory
+3. La rama debe ser "main" pero el directorio raíz es "."
 
 ### 🔧 PASO 5: Configuraciones avanzadas
 En **"Advanced"**:
