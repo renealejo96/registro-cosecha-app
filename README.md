@@ -10,7 +10,7 @@ Una aplicación web desarrollada con Streamlit para registrar y visualizar datos
 - 📋 Tabla de registros guardados
 - 🔢 Métricas de resumen
 
-## 📦 Instalación
+## 📦 Instalación Local
 
 1. Asegúrate de tener Python 3.7+ instalado
 2. Instala las dependencias:
@@ -18,40 +18,49 @@ Una aplicación web desarrollada con Streamlit para registrar y visualizar datos
 pip install -r requirements.txt
 ```
 
-## 🏃‍♂️ Ejecución
+## 🏃‍♂️ Ejecución Local
 
-### Opción 1: Script automático (Windows)
-```bash
-run_app.bat
-```
-
-### Opción 2: Comando manual
 ```bash
 streamlit run app.py
 ```
 
-### Opción 3: Para acceso desde móviles en la red local
-```bash
-streamlit run app.py --server.address 0.0.0.0 --server.port 8501
-```
+## 🌐 Despliegue en Streamlit Cloud
+
+### Pasos para desplegar:
+
+1. **Ve a Streamlit Cloud:**
+   ```
+   https://share.streamlit.io
+   ```
+
+2. **Conecta con GitHub:**
+   - Click "Sign up with GitHub"
+   - Autoriza acceso a repositorios
+
+3. **Deploy la aplicación:**
+   ```
+   Repository: renealejo96/registro-cosecha-app
+   Branch: main
+   Main file path: app.py
+   ```
+
+4. **¡Listo!**
+   - Tu app estará disponible en una URL como:
+   - `https://registro-cosecha-app-[hash].streamlit.app`
 
 ## 📱 Acceso desde Móvil
 
-1. Ejecuta la aplicación con la opción 3
-2. Encuentra la IP de tu computadora:
-   - Windows: `ipconfig`
-   - En la red Wi-Fi busca "IPv4 Address"
-3. En tu móvil, abre el navegador y ve a: `http://[IP_DE_TU_PC]:8501`
-   - Ejemplo: `http://192.168.1.100:8501`
+1. Abre el navegador en tu móvil
+2. Ve a la URL de tu aplicación
+3. Opcional: "Agregar a pantalla de inicio" para acceso rápido
 
 ## 📁 Estructura de Archivos
 
 ```
 ├── app.py                 # Aplicación principal
 ├── requirements.txt       # Dependencias
-├── run_app.bat           # Script de inicio (Windows)
 ├── .streamlit/
-│   └── config.toml       # Configuración de Streamlit
+│   └── config.toml       # Configuración del tema
 └── data/
     ├── registros.csv     # Datos de registros
     ├── variedades.csv    # Lista de variedades

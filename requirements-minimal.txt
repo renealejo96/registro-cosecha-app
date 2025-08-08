@@ -1,4 +1,0 @@
-# Ultra minimalista - solo lo absolutamente necesario
-streamlit
-pandas
-altair
