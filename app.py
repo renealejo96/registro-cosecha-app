@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 import os
-import hashlib
+import datetime
 
 # Archivos y carpetas
 DATA_FOLDER = "data"
@@ -44,11 +44,9 @@ def mostrar_login():
         st.markdown("### 🔐 Iniciar Sesión")
         usuario = st.text_input("👤 Usuario")
         contraseña = st.text_input("🔑 Contraseña", type="password")
-        
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
+        _, col_login2, _ = st.columns([1, 2, 1])
+        with col_login2:
             login_button = st.form_submit_button("Ingresar", use_container_width=True)
-        
         if login_button:
             if usuario and contraseña:
                 user_info = verificar_credenciales(usuario, contraseña)
@@ -85,12 +83,10 @@ def mostrar_info_usuario():
     """Mostrar información del usuario logueado"""
     if 'user_info' in st.session_state:
         user = st.session_state.user_info
-        col1, col2 = st.columns([3, 1])
-        
-        with col1:
+        col_user1, col_user2 = st.columns([3, 1])
+        with col_user1:
             st.markdown(f"👤 **{user['nombre']}** ({user['rol']})")
-        
-        with col2:
+        with col_user2:
             if st.button("🚪 Cerrar Sesión", use_container_width=True):
                 logout()
 
@@ -133,27 +129,56 @@ def save_data(new_record):
 
 # Guardar registro eliminado
 def save_deleted_record(deleted_record):
-    from datetime import datetime
+    from datetime import datetime as dt
     
     # Agregar información de eliminación
     deleted_record_with_info = deleted_record.copy()
-    deleted_record_with_info['Fecha_Eliminacion'] = datetime.now().strftime("%Y-%m-%d")
-    deleted_record_with_info['Hora_Eliminacion'] = datetime.now().strftime("%H:%M:%S")
+    deleted_record_with_info['Fecha_Eliminacion'] = dt.now().strftime("%Y-%m-%d")
+    deleted_record_with_info['Hora_Eliminacion'] = dt.now().strftime("%H:%M:%S")
     deleted_record_with_info['Motivo'] = "Eliminado manualmente"
     
     # Cargar datos eliminados existentes o crear estructura
     if os.path.exists(ELIMINADOS_FILE):
-        deleted_data = pd.read_csv(ELIMINADOS_FILE)
+        deleted_data_local = pd.read_csv(ELIMINADOS_FILE)
     else:
         # Crear DataFrame con las columnas originales más las nuevas
-        columns = ["Fecha", "Hora", "Fecha_Formato", "Numero_Viaje", "Responsable", "Variedad", 
-                  "Mallas", "Número de tallos", "Total cosecha", "Modulo", 
-                  "Fecha_Eliminacion", "Hora_Eliminacion", "Motivo"]
-        deleted_data = pd.DataFrame(columns=columns)
+        columns = [
+            "Fecha", "Hora", "Fecha_Formato", "Numero_Viaje", "Responsable", "Variedad",
+            "Total cosecha", "Modulo", "Fecha_Eliminacion", "Hora_Eliminacion", "Motivo"
+        ]
+        deleted_data_local = pd.DataFrame(columns=columns)
     
     # Agregar el nuevo registro eliminado
-    deleted_data = pd.concat([deleted_data, pd.DataFrame([deleted_record_with_info])], ignore_index=True)
-    deleted_data.to_csv(ELIMINADOS_FILE, index=False)
+    deleted_data_local = pd.concat([deleted_data_local, pd.DataFrame([deleted_record_with_info])], ignore_index=True)
+    deleted_data_local.to_csv(ELIMINADOS_FILE, index=False)
+
+def backup_and_reset_daily_data():
+    """
+    Mueve los registros de registros.csv a registros_historico.csv si la fecha no es la actual y la hora es después de las 23:59.
+    """
+    now = datetime.datetime.now()
+    current_date = now.strftime('%Y-%m-%d')
+    # current_time = now.strftime('%H:%M')  # Unused variable removed
+    HISTORICO_FILE = os.path.join(DATA_FOLDER, "registros_historico.csv")
+
+    if os.path.exists(DATA_FILE):
+        df = pd.read_csv(DATA_FILE)
+        if not df.empty:
+            # Verifica si hay registros que no son del día actual y la hora es >= 23:59
+            fechas = df['Fecha'].astype(str).unique()
+            if any(fecha != current_date for fecha in fechas) and now.hour >= 23 and now.minute >= 59:
+                # Mover todos los registros al histórico
+                if os.path.exists(HISTORICO_FILE):
+                    df_hist = pd.read_csv(HISTORICO_FILE)
+                    df_hist = pd.concat([df_hist, df], ignore_index=True)
+                else:
+                    df_hist = df.copy()
+                df_hist.to_csv(HISTORICO_FILE, index=False)
+                # Vaciar el archivo principal, dejando solo cabecera
+                df.iloc[0:0].to_csv(DATA_FILE, index=False)
+
+# Llamar la función al inicio de la app
+backup_and_reset_daily_data()
 
 # Crear carpeta si no existe
 os.makedirs(DATA_FOLDER, exist_ok=True)
@@ -280,23 +305,16 @@ with st.form("formulario_cosecha"):
         st.warning("No hay variedades disponibles en data/variedades.csv")
         variedad = ""
 
-    # Cuarta fila - Mallas y tallos por malla
-    col5, col6 = st.columns(2)
-    with col5:
-        mallas = st.number_input("Número de mallas", min_value=1, step=1)
-    with col6:
-        num_tallos = st.selectbox("Tallos por malla", [10, 15, 20, 25, 30])
-    
-    # Cálculo automático
-    total_cosecha = mallas * num_tallos
-    st.info(f"**Total cosecha calculada: {total_cosecha:,} tallos**")
+    # Cálculo automático (solo mostrar campo de total cosecha)
+    total_cosecha = st.number_input("Total cosecha", min_value=1, step=1)
+    st.info(f"**Total cosecha registrada: {total_cosecha:,} tallos**")
 
     enviado = st.form_submit_button("Registrar Cosecha", use_container_width=True)
 
     if enviado:
         if not variedad or not modulo or not responsable:
             st.error("Debe completar todos los campos obligatorios.")
-        else:            
+        else:
             registro = {
                 "Fecha": fecha.strftime("%Y-%m-%d"),
                 "Hora": hora.strftime("%H:%M"),
@@ -304,8 +322,6 @@ with st.form("formulario_cosecha"):
                 "Numero_Viaje": numero_viaje,
                 "Responsable": responsable,
                 "Variedad": variedad,
-                "Mallas": mallas,
-                "Número de tallos": num_tallos,
                 "Total cosecha": total_cosecha,
                 "Modulo": modulo
             }
@@ -322,12 +338,9 @@ if data.empty:
 else:
     # Reordenar columnas para mejor visualización
     cols = data.columns.tolist()
-    orden_preferido = ["Fecha_Formato", "Fecha", "Hora", "Numero_Viaje", "Responsable", "Modulo", "Variedad", "Mallas", "Número de tallos", "Total cosecha"]
+    orden_preferido = ["Fecha_Formato", "Fecha", "Hora", "Numero_Viaje", "Responsable", "Modulo", "Variedad", "Total cosecha"]
     cols_ordenadas = [col for col in orden_preferido if col in cols] + [col for col in cols if col not in orden_preferido]
     data = data[cols_ordenadas]
-    
-    # Columnas a ocultar en la visualización
-    columnas_ocultar = ["Número de mallas", "Tallos por malla"]
 
     # Filtros
     col_filtro1, col_filtro2 = st.columns(2)
@@ -508,7 +521,7 @@ else:
                         data_actualizada.to_csv(DATA_FILE, index=False)
                         
                         st.success(f"✅ Registro eliminado exitosamente: {row_a_eliminar['Variedad']} - {row_a_eliminar['Fecha']} {row_a_eliminar['Hora']}")
-                        st.info(f"📁 El registro ha sido guardado en eliminados.csv como respaldo")
+                        st.info("📁 El registro ha sido guardado en eliminados.csv como respaldo")
                         st.rerun()
                     else:
                         st.error("❌ No se pudo encontrar el registro para eliminar")
@@ -532,7 +545,6 @@ else:
             
             with col_det3:
                 st.info(f"**🌸 Variedad:** {row_seleccionada.get('Variedad', 'N/A')}")
-                st.info(f"**📦 Mallas:** {row_seleccionada.get('Mallas', 'N/A')}")
                 st.info(f"**🎯 Total:** {row_seleccionada.get('Total cosecha', 'N/A')} tallos")
         else:
             st.markdown("---")
