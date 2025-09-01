@@ -1,2 +1,12 @@
-Modulo,Fecha,Variedad,Número de mallas,Tallos por malla,Total cosecha,Número de tallos,Mallas
-102.0,2025-08-08,MAGICAL RENATA GREEN,,,90,15.0,6.0
+Modulo,Fecha,Variedad,Número de mallas,Tallos por malla,Total cosecha,Número de tallos,Mallas,Numero_Viaje,Responsable,Hora,Fecha_Formato
+102.0,2025-08-08,MAGICAL RENATA GREEN,,,90,15.0,6.0,,,,
+103.0,2025-08-08,MAGICAL RED WINE,,,100,10.0,10.0,,,,
+126.0,2025-08-08,MAGICAL RED WINE,,,4660,20.0,233.0,,,,
+13C,3125,MAGICAL RENATA GREEN,,,140,10.0,14.0,4.0,Kevin Buitron,,
+113,3125,SUNRICH GOLD,,,255,15.0,17.0,2.0,Kevin Buitron,,
+130,2025-08-08,SUNRICH GOLD,,,1710,15.0,114.0,2.0,Marcia Mora,14:58,2531.0
+105,2025-08-08,MAGICAL CHERRY,,,875,25.0,35.0,1.0,Marcia Mora,15:04,2531.0
+104,2025-09-01,SUNRICH GOLD,,,10,10.0,1.0,1.0,Kevin Buitron,00:00,2535.0
+105,2025-09-02,SUNRICH GOLD,,,10,10.0,1.0,1.0,Kevin Buitron,00:00,2535.0
+105,2025-09-02,MAGICAL MAJESTIC PINK,,,10,10.0,1.0,1.0,Marcia Mora,16:15,2535.0
+105,2025-09-02,MAGICAL MAJESTIC PINK,,,10,10.0,1.0,1.0,Marcia Mora,23:45,2535
